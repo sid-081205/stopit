@@ -5,6 +5,7 @@ stopit is a private, native iOS app for reducing one unwanted habit. A tap recor
 ## features
 
 - immediate `urge` and `did it` logging
+- optional in-app notes after logging: `morning`, `bored`, `trigger`, or `night`
 - editable and deletable timestamped history
 - daily urge and occurrence charts for 7, 30, and 90 days
 - configurable target of 0 through 99 actual occurrences per week
@@ -73,7 +74,7 @@ xcodebuild test \
   -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest'
 ```
 
-Unit tests cover storage, sorting, day/range aggregation, weekly goals, estimates, trend comparison, and settings. UI tests cover onboarding, both log actions, event editing/deletion, target changes, and insight range selection.
+Unit tests cover storage, sorting, day/range aggregation, weekly goals, estimates, trend comparison, optional reasons, and settings. UI tests cover onboarding, both log actions, attaching a reason, event editing/deletion, target changes, and insight range selection.
 
 ## privacy
 

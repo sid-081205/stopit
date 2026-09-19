@@ -1,7 +1,11 @@
 import Foundation
 
 protocol EventStoring: Sendable {
-    func add(type: HabitEventType, at date: Date) async throws
+    func add(
+        type: HabitEventType,
+        at date: Date,
+        reason: HabitEventReason?
+    ) async throws -> HabitEvent
     func update(_ event: HabitEvent) async throws
     func delete(id: UUID) async throws
     func fetchAll() async throws -> [HabitEvent]
@@ -27,8 +31,14 @@ actor EventStore: EventStoring {
         )
     }
 
-    func add(type: HabitEventType, at date: Date = .now) async throws {
-        try write(HabitEvent(type: type, timestamp: date))
+    func add(
+        type: HabitEventType,
+        at date: Date = .now,
+        reason: HabitEventReason? = nil
+    ) async throws -> HabitEvent {
+        let event = HabitEvent(type: type, timestamp: date, reason: reason)
+        try write(event)
+        return event
     }
 
     func update(_ event: HabitEvent) async throws {

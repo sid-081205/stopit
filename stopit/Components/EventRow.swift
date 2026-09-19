@@ -6,8 +6,15 @@ struct EventRow: View {
 
     var body: some View {
         HStack {
-            Text(event.type.displayName)
-                .font(.body.weight(.medium))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(event.type.displayName)
+                    .font(.body.weight(.medium))
+                if let reason = event.reason {
+                    Text(reason.displayName)
+                        .font(.caption)
+                        .foregroundStyle(StopitTheme.secondary)
+                }
+            }
             Spacer()
             Text(contextualTimestamp)
                 .font(.subheadline)
@@ -16,7 +23,7 @@ struct EventRow: View {
         .padding(.vertical, 13)
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(event.type.displayName), \(accessibleTimestamp)")
+        .accessibilityLabel(accessibilityText)
         .overlay(alignment: .bottom) {
             if showDivider {
                 Rectangle()
@@ -41,5 +48,13 @@ struct EventRow: View {
 
     private var accessibleTimestamp: String {
         event.timestamp.formatted(date: .complete, time: .shortened).lowercased()
+    }
+
+    private var accessibilityText: String {
+        if let reason = event.reason {
+            "\(event.type.displayName), \(reason.displayName), \(accessibleTimestamp)"
+        } else {
+            "\(event.type.displayName), \(accessibleTimestamp)"
+        }
     }
 }

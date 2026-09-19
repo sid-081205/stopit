@@ -20,6 +20,9 @@ final class StopitUITests: XCTestCase {
         completeOnboarding()
         app.buttons["log urge"].tap()
         XCTAssertTrue(app.staticTexts["urge logged"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["reason morning"].waitForExistence(timeout: 2))
+        app.buttons["reason morning"].tap()
+        XCTAssertTrue(app.staticTexts["urge · morning"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.staticTexts["1"].firstMatch.exists)
     }
 

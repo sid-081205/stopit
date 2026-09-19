@@ -23,6 +23,7 @@ final class EventStoreTests: XCTestCase {
 
         let events = try await store.fetchAll()
         XCTAssertEqual(events.map(\.type), [.urge])
+        XCTAssertNil(events.first?.reason)
     }
 
     func testAddingAnOccurrence() async throws {
@@ -33,6 +34,50 @@ final class EventStoreTests: XCTestCase {
         XCTAssertEqual(events.map(\.type), [.occurrence])
     }
 
+    func testAddingAnUrgeWithAReason() async throws {
+        let store = try EventStore(directoryURL: directory)
+        let event = try await store.add(
+            type: .urge,
+            at: Date(timeIntervalSince1970: 100),
+            reason: .bored
+        )
+
+        XCTAssertEqual(event.reason, .bored)
+        let events = try await store.fetchAll()
+        XCTAssertEqual(events.first?.reason, .bored)
+    }
+
+    func testAddingAnOccurrenceWithAReason() async throws {
+        let store = try EventStore(directoryURL: directory)
+        let event = try await store.add(
+            type: .occurrence,
+            at: Date(timeIntervalSince1970: 100),
+            reason: .night
+        )
+
+        XCTAssertEqual(event.reason, .night)
+    }
+
+    func testEventsWithoutAReasonStillDecode() async throws {
+        let store = try EventStore(directoryURL: directory)
+        let event = HabitEvent(type: .urge, timestamp: Date(timeIntervalSince1970: 100))
+        let data = try JSONEncoder().encode(LegacyHabitEvent(
+            id: event.id,
+            type: event.type,
+            timestamp: event.timestamp,
+            createdAt: event.createdAt
+        ))
+        let url = directory
+            .appendingPathComponent("events", isDirectory: true)
+            .appendingPathComponent(event.id.uuidString)
+            .appendingPathExtension("json")
+        try data.write(to: url, options: .atomic)
+
+        let events = try await store.fetchAll()
+        XCTAssertEqual(events.first?.id, event.id)
+        XCTAssertNil(events.first?.reason)
+    }
+
     func testEditingAnEvent() async throws {
         let store = try EventStore(directoryURL: directory)
         let event = HabitEvent(type: .urge, timestamp: Date(timeIntervalSince1970: 100))
@@ -41,10 +86,12 @@ final class EventStoreTests: XCTestCase {
         var edited = event
         edited.type = .occurrence
         edited.timestamp = Date(timeIntervalSince1970: 200)
+        edited.reason = .trigger
         try await store.update(edited)
 
         let events = try await store.fetchAll()
         XCTAssertEqual(events, [edited])
+        XCTAssertEqual(events.first?.reason, .trigger)
     }
 
     func testDeletingAnEvent() async throws {
@@ -277,4 +324,11 @@ final class SettingsStoreTests: XCTestCase {
         let loaded = await store.load()
         XCTAssertEqual(loaded, settings)
     }
+}
+
+private struct LegacyHabitEvent: Encodable {
+    let id: UUID
+    let type: HabitEventType
+    let timestamp: Date
+    let createdAt: Date
 }

@@ -8,6 +8,8 @@ struct TodayView: View {
     @State private var writingUrge = false
     @State private var writingOccurrence = false
     @State private var confirmation: String?
+    @State private var lastLoggedEvent: HabitEvent?
+    @State private var confirmationTask: Task<Void, Never>?
 
     private var counts: (urges: Int, occurrences: Int) {
         InsightCalculator.todayCounts(events: model.events)
@@ -32,15 +34,24 @@ struct TodayView: View {
         .navigationBarTitleDisplayMode(.inline)
         .overlay(alignment: .top) {
             if let confirmation {
-                Text(confirmation)
-                    .font(.subheadline.weight(.medium))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Capsule())
-                    .padding(.top, 8)
-                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
-                    .accessibilityAddTraits(.updatesFrequently)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(confirmation)
+                        .font(.subheadline.weight(.medium))
+                    Text("why?")
+                        .font(.caption)
+                        .foregroundStyle(StopitTheme.secondary)
+                    ReasonChipRow(selected: lastLoggedEvent?.reason) { reason in
+                        attach(reason)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
+                .accessibilityAddTraits(.updatesFrequently)
             }
         }
         .sheet(item: $selectedEvent) { event in
@@ -154,23 +165,42 @@ struct TodayView: View {
         guard type == .urge ? !writingUrge : !writingOccurrence else { return }
         if type == .urge { writingUrge = true } else { writingOccurrence = true }
         Task {
-            let succeeded = await model.log(type)
-            if succeeded {
+            if let event = await model.log(type) {
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                lastLoggedEvent = event
                 showConfirmation(type == .urge ? "urge logged" : "logged")
             }
             if type == .urge { writingUrge = false } else { writingOccurrence = false }
         }
     }
 
+    private func attach(_ reason: HabitEventReason?) {
+        guard var event = lastLoggedEvent else { return }
+        event.reason = reason
+        Task {
+            if await model.update(event) {
+                lastLoggedEvent = event
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                showConfirmation(
+                    reason == nil
+                        ? (event.type == .urge ? "urge logged" : "logged")
+                        : "\(event.type.displayName) · \(reason.displayName)"
+                )
+            }
+        }
+    }
+
     private func showConfirmation(_ message: String) {
+        confirmationTask?.cancel()
         withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
             confirmation = message
         }
-        Task {
-            try? await Task.sleep(for: .seconds(1.4))
+        confirmationTask = Task {
+            try? await Task.sleep(for: .seconds(4.5))
+            guard !Task.isCancelled else { return }
             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
                 confirmation = nil
+                lastLoggedEvent = nil
             }
         }
     }

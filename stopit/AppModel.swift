@@ -50,19 +50,26 @@ final class AppModel: ObservableObject {
         }
     }
 
-    func log(_ type: HabitEventType) async -> Bool {
+    func log(
+        _ type: HabitEventType,
+        reason: HabitEventReason? = nil
+    ) async -> HabitEvent? {
         guard let eventStore else {
             presentedError = "shared storage is unavailable."
-            return false
+            return nil
         }
         do {
-            try await eventStore.add(type: type, at: .now)
+            let event = try await eventStore.add(
+                type: type,
+                at: .now,
+                reason: reason
+            )
             events = try await eventStore.fetchAll()
             WidgetCenter.shared.reloadAllTimelines()
-            return true
+            return event
         } catch {
             presentedError = error.localizedDescription
-            return false
+            return nil
         }
     }
 

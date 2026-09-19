@@ -24,6 +24,7 @@
 		B00000000000000000000010 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000010 /* HistoryView.swift */; };
 		B00000000000000000000011 /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000011 /* InsightsView.swift */; };
 		B00000000000000000000012 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000012 /* SettingsView.swift */; };
+		B0000000000000000000001F /* ReasonChipRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000001F /* ReasonChipRow.swift */; };
 		B00000000000000000000020 /* SharedConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000004 /* SharedConfiguration.swift */; };
 		B00000000000000000000021 /* HabitEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000005 /* HabitEvent.swift */; };
 		B00000000000000000000022 /* HabitSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000006 /* HabitSettings.swift */; };
@@ -92,6 +93,7 @@
 		F0000000000000000000001C /* stopitWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Configuration/stopitWidget.entitlements; sourceTree = "<group>"; };
 		F0000000000000000000001D /* StopitPrivacy.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Configuration/StopitPrivacy.xcprivacy; sourceTree = "<group>"; };
 		F0000000000000000000001E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = stopit/Assets.xcassets; sourceTree = "<group>"; };
+		F0000000000000000000001F /* ReasonChipRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = stopit/Components/ReasonChipRow.swift; sourceTree = "<group>"; };
 		F00000000000000000000101 /* stopit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = stopit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F00000000000000000000102 /* stopitWidget.appex */ = {isa = PBXFileReference; explicitFileType = wrapper.app-extension; includeInIndex = 0; path = stopitWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F00000000000000000000103 /* stopitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = stopitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -126,7 +128,7 @@
 				F0000000000000000000000A, F0000000000000000000000B, F0000000000000000000000C,
 				F0000000000000000000000D, F0000000000000000000000E, F0000000000000000000000F,
 				F00000000000000000000010, F00000000000000000000011, F00000000000000000000012,
-				F0000000000000000000001E,
+				F0000000000000000000001E, F0000000000000000000001F,
 			);
 			name = stopit;
 			sourceTree = "<group>";
@@ -248,6 +250,7 @@
 				B0000000000000000000000A, B0000000000000000000000B, B0000000000000000000000C,
 				B0000000000000000000000D, B0000000000000000000000E, B0000000000000000000000F,
 				B00000000000000000000010, B00000000000000000000011, B00000000000000000000012,
+				B0000000000000000000001F,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

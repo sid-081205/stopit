@@ -37,6 +37,14 @@ struct EditEventView: View {
                 }
 
                 Section {
+                    ReasonChipRow(selected: draft.reason) { draft.reason = $0 }
+                } header: {
+                    Text("why")
+                } footer: {
+                    Text("optional. morning, bored, trigger, or night.")
+                }
+
+                Section {
                     Button("delete event", role: .destructive) {
                         showingDeleteConfirmation = true
                     }
