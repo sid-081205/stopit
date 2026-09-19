@@ -20,7 +20,7 @@ struct EventRow: View {
                 .font(.subheadline)
                 .foregroundStyle(StopitTheme.secondary)
         }
-        .padding(.vertical, 13)
+        .padding(.vertical, 15)
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityText)

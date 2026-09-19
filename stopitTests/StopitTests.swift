@@ -250,6 +250,51 @@ final class InsightCalculatorTests: XCTestCase {
         )
     }
 
+    func testReasonBreakdownCountsUrgeAndOccurrenceNotes() {
+        let events = [
+            HabitEvent(type: .urge, timestamp: now, reason: .bored),
+            HabitEvent(type: .urge, timestamp: now, reason: .bored),
+            HabitEvent(type: .urge, timestamp: now, reason: .night),
+            HabitEvent(type: .occurrence, timestamp: now, reason: .trigger),
+            HabitEvent(type: .occurrence, timestamp: now)
+        ]
+        let breakdown = InsightCalculator.reasonBreakdown(events: events)
+
+        XCTAssertEqual(breakdown.first { $0.reason == .bored }?.urges, 2)
+        XCTAssertEqual(breakdown.first { $0.reason == .night }?.urges, 1)
+        XCTAssertEqual(breakdown.first { $0.reason == .trigger }?.occurrences, 1)
+        XCTAssertEqual(breakdown.first { $0.reason == .morning }?.total, 0)
+    }
+
+    func testLeadingReasonIgnoresTiesAndEmptyData() {
+        let tied = [
+            ReasonBreakdown(reason: .morning, urges: 2, occurrences: 0),
+            ReasonBreakdown(reason: .bored, urges: 2, occurrences: 1),
+            ReasonBreakdown(reason: .trigger, urges: 0, occurrences: 1),
+            ReasonBreakdown(reason: .night, urges: 0, occurrences: 0)
+        ]
+        XCTAssertNil(InsightCalculator.leadingReason(in: tied, type: .urge))
+        XCTAssertNil(InsightCalculator.leadingReason(in: tied, type: .occurrence))
+        XCTAssertEqual(
+            InsightCalculator.leadingReason(
+                in: [
+                    ReasonBreakdown(reason: .morning, urges: 1, occurrences: 0),
+                    ReasonBreakdown(reason: .bored, urges: 3, occurrences: 0),
+                    ReasonBreakdown(reason: .trigger, urges: 0, occurrences: 0),
+                    ReasonBreakdown(reason: .night, urges: 0, occurrences: 0)
+                ],
+                type: .urge
+            ),
+            .bored
+        )
+        XCTAssertNil(
+            InsightCalculator.leadingReason(
+                in: InsightCalculator.reasonBreakdown(events: []),
+                type: .urge
+            )
+        )
+    }
+
     func testPreviousPeriodZeroHandling() {
         let events = [event(.occurrence, daysAgo: 1)]
         XCTAssertEqual(

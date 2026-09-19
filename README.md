@@ -6,6 +6,7 @@ stopit is a private, native iOS app for reducing one unwanted habit. A tap recor
 
 - immediate `urge` and `did it` logging
 - optional in-app notes after logging: `morning`, `bored`, `trigger`, or `night`
+- reason trends for urges and occurrences on insights
 - editable and deletable timestamped history
 - daily urge and occurrence charts for 7, 30, and 90 days
 - configurable target of 0 through 99 actual occurrences per week

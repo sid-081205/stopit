@@ -6,21 +6,21 @@ struct ReasonChipRow: View {
 
     var body: some View {
         LazyVGrid(
-            columns: [GridItem(.flexible()), GridItem(.flexible())],
-            spacing: 8
+            columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
+            spacing: 12
         ) {
             ForEach(HabitEventReason.allCases) { reason in
                 Button {
                     onSelect(selected == reason ? nil : reason)
                 } label: {
                     Text(reason.displayName)
-                        .font(.subheadline.weight(.medium))
-                        .padding(.horizontal, 12)
+                        .font(.subheadline)
+                        .padding(.horizontal, 14)
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .background(
                             selected == reason
                                 ? StopitTheme.raisedSurface
-                                : StopitTheme.surface
+                                : Color.clear
                         )
                         .foregroundStyle(
                             selected == reason
@@ -32,8 +32,8 @@ struct ReasonChipRow: View {
                             Capsule()
                                 .stroke(
                                     selected == reason
-                                        ? StopitTheme.primary.opacity(0.35)
-                                        : StopitTheme.border,
+                                        ? StopitTheme.border
+                                        : StopitTheme.border.opacity(0.7),
                                     lineWidth: 0.5
                                 )
                         }

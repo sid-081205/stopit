@@ -9,6 +9,20 @@ enum StopitTheme {
     static let secondary = Color(white: 0.64)
 }
 
+struct SoftPressButtonStyle: ButtonStyle {
+    var reduceMotion = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.72 : 1)
+            .scaleEffect(reduceMotion || !configuration.isPressed ? 1 : 0.985)
+            .animation(
+                reduceMotion ? nil : .easeOut(duration: 0.14),
+                value: configuration.isPressed
+            )
+    }
+}
+
 struct StopitCard<Content: View>: View {
     @ViewBuilder let content: Content
 

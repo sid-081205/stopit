@@ -28,3 +28,13 @@ struct TrendComparison: Equatable, Sendable {
     let direction: Direction
     let percent: Int?
 }
+
+struct ReasonBreakdown: Identifiable, Equatable, Sendable {
+    let reason: HabitEventReason
+    let urges: Int
+    let occurrences: Int
+
+    var id: HabitEventReason { reason }
+
+    var total: Int { urges + occurrences }
+}

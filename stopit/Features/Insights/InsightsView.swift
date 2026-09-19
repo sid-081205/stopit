@@ -57,6 +57,7 @@ struct InsightsView: View {
                 summaryGrid
                 weeklyTargetCard
                 trendView
+                reasonTrends
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 30)
@@ -196,6 +197,101 @@ struct InsightsView: View {
         }
     }
 
+    private var reasonTrends: some View {
+        let breakdown = InsightCalculator.reasonBreakdown(events: rangeEvents)
+        let hasNotes = breakdown.contains { $0.total > 0 }
+        let leadingUrge = InsightCalculator.leadingReason(in: breakdown, type: .urge)
+        let leadingOccurrence = InsightCalculator.leadingReason(
+            in: breakdown,
+            type: .occurrence
+        )
+
+        return VStack(alignment: .leading, spacing: 16) {
+            Text("reasons")
+                .font(.headline)
+
+            if hasNotes {
+                Chart {
+                    ForEach(breakdown) { item in
+                        BarMark(
+                            x: .value("reason", item.reason.displayName),
+                            y: .value("urges", item.urges)
+                        )
+                        .foregroundStyle(StopitTheme.secondary)
+                        .position(by: .value("series", "urges"))
+
+                        BarMark(
+                            x: .value("reason", item.reason.displayName),
+                            y: .value("occurrences", item.occurrences)
+                        )
+                        .foregroundStyle(.white)
+                        .position(by: .value("series", "occurrences"))
+                    }
+                }
+                .chartLegend(.hidden)
+                .chartYScale(domain: .automatic(includesZero: true))
+                .chartXAxis {
+                    AxisMarks { _ in
+                        AxisValueLabel()
+                            .foregroundStyle(StopitTheme.secondary)
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks(position: .leading) {
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                            .foregroundStyle(StopitTheme.border)
+                        AxisValueLabel()
+                            .foregroundStyle(StopitTheme.secondary)
+                    }
+                }
+                .chartPlotStyle { plot in
+                    plot.background(Color.black)
+                }
+                .frame(height: 170)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("reason notes for urges and occurrences")
+                .accessibilityValue(accessibleReasonDescription(breakdown))
+
+                HStack(spacing: 18) {
+                    Label("occurrences", systemImage: "square.fill")
+                        .foregroundStyle(.white)
+                    Label("urges", systemImage: "circle.fill")
+                        .foregroundStyle(StopitTheme.secondary)
+                }
+                .font(.caption)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(breakdown) { item in
+                        HStack {
+                            Text(item.reason.displayName)
+                            Spacer()
+                            Text("\(item.urges) urges · \(item.occurrences) did it")
+                                .foregroundStyle(StopitTheme.secondary)
+                                .monospacedDigit()
+                        }
+                        .font(.subheadline)
+                    }
+                }
+
+                if let leadingUrge {
+                    Text("most common urge note: \(leadingUrge.displayName)")
+                        .font(.subheadline)
+                        .foregroundStyle(StopitTheme.secondary)
+                }
+                if let leadingOccurrence {
+                    Text("most common did it note: \(leadingOccurrence.displayName)")
+                        .font(.subheadline)
+                        .foregroundStyle(StopitTheme.secondary)
+                }
+            } else {
+                Text("add a note after logging to see these trends.")
+                    .font(.subheadline)
+                    .foregroundStyle(StopitTheme.secondary)
+            }
+        }
+        .modifier(InsightsCardModifier())
+    }
+
     private var axisStride: Int {
         switch selectedRange {
         case .seven: 1
@@ -209,6 +305,12 @@ struct InsightsView: View {
             let date = point.date.formatted(date: .abbreviated, time: .omitted)
             return "\(date): \(point.urges) urges, \(point.occurrences) occurrences"
         }.joined(separator: "; ").lowercased()
+    }
+
+    private func accessibleReasonDescription(_ breakdown: [ReasonBreakdown]) -> String {
+        breakdown.map { item in
+            "\(item.reason.displayName): \(item.urges) urges, \(item.occurrences) occurrences"
+        }.joined(separator: "; ")
     }
 
     private func trendText(_ trend: TrendComparison) -> String {

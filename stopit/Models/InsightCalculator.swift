@@ -117,4 +117,27 @@ enum InsightCalculator {
         }
         return TrendComparison(direction: direction, percent: percent)
     }
+
+    static func reasonBreakdown(events: [HabitEvent]) -> [ReasonBreakdown] {
+        HabitEventReason.allCases.map { reason in
+            ReasonBreakdown(
+                reason: reason,
+                urges: events.filter { $0.type == .urge && $0.reason == reason }.count,
+                occurrences: events.filter { $0.type == .occurrence && $0.reason == reason }.count
+            )
+        }
+    }
+
+    static func leadingReason(
+        in breakdown: [ReasonBreakdown],
+        type: HabitEventType
+    ) -> HabitEventReason? {
+        let scored = breakdown.map { item in
+            (item.reason, type == .urge ? item.urges : item.occurrences)
+        }
+        let highest = scored.map(\.1).max() ?? 0
+        guard highest > 0 else { return nil }
+        let leaders = scored.filter { $0.1 == highest }
+        return leaders.count == 1 ? leaders[0].0 : nil
+    }
 }

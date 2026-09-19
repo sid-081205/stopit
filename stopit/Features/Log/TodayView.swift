@@ -21,39 +21,35 @@ struct TodayView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
+            VStack(alignment: .leading, spacing: 0) {
                 header
+                    .padding(.bottom, confirmation == nil ? 36 : 12)
+
+                if let confirmation {
+                    reasonCard(confirmation)
+                        .padding(.bottom, 36)
+                        .transition(
+                            reduceMotion
+                                ? .opacity
+                                : .opacity.combined(with: .move(edge: .top))
+                        )
+                }
+
                 actions
+                    .padding(.bottom, 36)
+
                 todaySummary
+                    .padding(.bottom, 36)
+
                 recentHistory
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 30)
+            .padding(.horizontal, 22)
+            .padding(.top, 8)
+            .padding(.bottom, 40)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: confirmation)
         }
         .background(StopitTheme.background.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
-        .overlay(alignment: .top) {
-            if let confirmation {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(confirmation)
-                        .font(.subheadline.weight(.medium))
-                    Text("why?")
-                        .font(.caption)
-                        .foregroundStyle(StopitTheme.secondary)
-                    ReasonChipRow(selected: lastLoggedEvent?.reason) { reason in
-                        attach(reason)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
-                .accessibilityAddTraits(.updatesFrequently)
-            }
-        }
         .sheet(item: $selectedEvent) { event in
             EditEventView(event: event)
                 .environmentObject(model)
@@ -61,7 +57,7 @@ struct TodayView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("stopit")
                 .font(.largeTitle.bold())
                 .accessibilityAddTraits(.isHeader)
@@ -71,17 +67,42 @@ struct TodayView: View {
             Text(weeklyProgressText)
                 .font(.subheadline.monospacedDigit())
                 .foregroundStyle(StopitTheme.secondary)
-                .padding(.top, 3)
+                .padding(.top, 2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    private func reasonCard(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(message)
+                .font(.body.weight(.medium))
+            VStack(alignment: .leading, spacing: 12) {
+                Text("why?")
+                    .font(.subheadline)
+                    .foregroundStyle(StopitTheme.secondary)
+                ReasonChipRow(selected: lastLoggedEvent?.reason) { reason in
+                    attach(reason)
+                }
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(StopitTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(StopitTheme.border, lineWidth: 0.5)
+        }
+        .accessibilityAddTraits(.updatesFrequently)
+    }
+
     private var actions: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 16) {
             LogButton(
                 title: "urge",
                 subtitle: "i felt like doing it",
-                isLoading: writingUrge
+                isLoading: writingUrge,
+                reduceMotion: reduceMotion
             ) {
                 log(.urge)
             }
@@ -90,7 +111,8 @@ struct TodayView: View {
             LogButton(
                 title: "did it",
                 subtitle: "log an occurrence",
-                isLoading: writingOccurrence
+                isLoading: writingOccurrence,
+                reduceMotion: reduceMotion
             ) {
                 log(.occurrence)
             }
@@ -99,16 +121,16 @@ struct TodayView: View {
     }
 
     private var todaySummary: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("today")
                 .font(.headline)
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .firstTextBaseline, spacing: 28) {
                 SummaryValue(value: counts.urges, label: counts.urges == 1 ? "urge" : "urges")
-                Spacer()
                 SummaryValue(
                     value: counts.occurrences,
                     label: counts.occurrences == 1 ? "occurrence" : "occurrences"
                 )
+                Spacer(minLength: 0)
             }
             if let resisted = InsightCalculator.estimatedResisted(
                 urges: counts.urges,
@@ -123,7 +145,7 @@ struct TodayView: View {
     }
 
     private var recentHistory: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("recent")
                     .font(.headline)
@@ -133,6 +155,8 @@ struct TodayView: View {
                         .font(.subheadline)
                 }
             }
+            .padding(.bottom, 4)
+
             if model.events.isEmpty {
                 Text("your entries will appear here.")
                     .font(.subheadline)
@@ -192,13 +216,13 @@ struct TodayView: View {
 
     private func showConfirmation(_ message: String) {
         confirmationTask?.cancel()
-        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.22)) {
             confirmation = message
         }
         confirmationTask = Task {
-            try? await Task.sleep(for: .seconds(4.5))
+            try? await Task.sleep(for: .seconds(5))
             guard !Task.isCancelled else { return }
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.22)) {
                 confirmation = nil
                 lastLoggedEvent = nil
             }
@@ -210,39 +234,36 @@ private struct LogButton: View {
     let title: String
     let subtitle: String
     let isLoading: Bool
+    var reduceMotion = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 5) {
+            HStack(alignment: .center, spacing: 16) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(title)
-                        .font(.title2.weight(.semibold))
+                        .font(.title3.weight(.medium))
                     Text(subtitle)
                         .font(.subheadline)
                         .foregroundStyle(StopitTheme.secondary)
                 }
-                Spacer()
+                Spacer(minLength: 8)
                 if isLoading {
                     ProgressView()
-                } else {
-                    Image(systemName: "plus")
-                        .font(.title3.weight(.medium))
-                        .frame(width: 44, height: 44)
-                        .background(StopitTheme.raisedSurface)
-                        .clipShape(Circle())
                 }
             }
-            .padding(20)
-            .frame(maxWidth: .infinity, minHeight: 92)
+            .padding(.horizontal, 22)
+            .padding(.vertical, 22)
+            .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
             .background(StopitTheme.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .stroke(StopitTheme.border, lineWidth: 0.5)
             }
+            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(SoftPressButtonStyle(reduceMotion: reduceMotion))
         .disabled(isLoading)
         .accessibilityLabel("\(title), \(subtitle)")
     }
@@ -253,7 +274,7 @@ private struct SummaryValue: View {
     let label: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 4) {
             Text("\(value)")
                 .font(.title2.monospacedDigit().weight(.semibold))
             Text(label)
@@ -266,12 +287,12 @@ private struct SummaryValue: View {
 private struct CardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .padding(18)
+            .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(StopitTheme.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .stroke(StopitTheme.border, lineWidth: 0.5)
             }
     }
